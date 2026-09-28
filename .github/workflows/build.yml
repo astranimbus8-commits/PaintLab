@@ -38,6 +38,22 @@ jobs:
           mkdir -p out
           cp app/build/outputs/apk/release/*.apk out/PaintLab.apk
 
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: PaintLab-apk
+          path: out/PaintLab.apk
+
+      # A release gives you a plain download link you can open on your phone.
+      - name: Publish release
+        if: success()
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: build-${{ github.run_number }}
+          name: PaintLab build ${{ github.run_number }}
+          body: "Tap PaintLab.apk below to download and install."
+          files: out/PaintLab.apk
+
       # Saves the logs to the "ci-logs" branch so they can be read without the web UI.
       - name: Save logs
         if: always()
@@ -54,19 +70,3 @@ jobs:
           git add -f build.log model.log errors.txt status.txt 2>/dev/null || true
           git commit -q -m "logs for run ${{ github.run_number }}"
           git push -f origin ci-logs
-
-      - uses: actions/upload-artifact@v4
-        if: success()
-        with:
-          name: PaintLab-apk
-          path: out/PaintLab.apk
-
-      # A release gives you a plain download link you can open on your phone.
-      - name: Publish release
-        if: success()
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: build-${{ github.run_number }}
-          name: PaintLab build ${{ github.run_number }}
-          body: "Tap PaintLab.apk below to download and install."
-          files: out/PaintLab.apk
