@@ -514,16 +514,16 @@ private fun FramePanel(vm: EditorViewModel) {
             Spacer(Modifier.width(8.dp))
             Stepper("Columns", vm.frameCols) { vm.setFrameGrid(vm.frameRows, it) }
         }
-        LabeledSlider("Gutter", vm.frameGutter, vm::setFrameGutter, 0f..(minSide * 0.12f), "${vm.frameGutter.roundToInt()}")
-        LabeledSlider("Border", vm.frameBorder, vm::setFrameBorder, 0f..(minSide * 0.02f).coerceAtLeast(4f), "${vm.frameBorder.roundToInt()}")
-        LabeledSlider("Margin", vm.frameMargin, vm::setFrameMargin, 0f..(minSide * 0.15f), "${vm.frameMargin.roundToInt()}")
+        LabeledSlider("Gutter", vm.frameGutter, vm::changeFrameGutter, 0f..(minSide * 0.12f), "${vm.frameGutter.roundToInt()}")
+        LabeledSlider("Border", vm.frameBorder, vm::changeFrameBorder, 0f..(minSide * 0.02f).coerceAtLeast(4f), "${vm.frameBorder.roundToInt()}")
+        LabeledSlider("Margin", vm.frameMargin, vm::changeFrameMargin, 0f..(minSide * 0.15f), "${vm.frameMargin.roundToInt()}")
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("Snap lines straight", Modifier.weight(1f), fontSize = 13.sp)
             Switch(checked = vm.frameSnap, onCheckedChange = { vm.frameSnap = it })
         }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("White gutters", Modifier.weight(1f), fontSize = 13.sp)
-            Switch(checked = vm.frameWhiteGutters, onCheckedChange = vm::setFrameWhiteGutters)
+            Switch(checked = vm.frameWhiteGutters, onCheckedChange = vm::changeFrameWhiteGutters)
         }
     }
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {

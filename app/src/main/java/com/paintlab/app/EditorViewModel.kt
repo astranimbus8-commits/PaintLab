@@ -1557,10 +1557,10 @@ class EditorViewModel(app: Application) : AndroidViewModel(app) {
         frameRebuild()
     }
 
-    fun setFrameGutter(v: Float) { frameGutter = v; frameRebuild() }
-    fun setFrameBorder(v: Float) { frameBorder = v; frameRebuild() }
-    fun setFrameMargin(v: Float) { frameMargin = v; frameRebuild() }
-    fun setFrameWhiteGutters(v: Boolean) { frameWhiteGutters = v; frameRebuild() }
+    fun changeFrameGutter(v: Float) { frameGutter = v; frameRebuild() }
+    fun changeFrameBorder(v: Float) { frameBorder = v; frameRebuild() }
+    fun changeFrameMargin(v: Float) { frameMargin = v; frameRebuild() }
+    fun changeFrameWhiteGutters(v: Boolean) { frameWhiteGutters = v; frameRebuild() }
 
     fun frameUndoSplit() {
         if (frameSplits.isNotEmpty()) {
