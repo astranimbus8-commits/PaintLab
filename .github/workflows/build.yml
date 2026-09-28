@@ -1,31 +1,72 @@
 name: Build APK
+
 on:
   push:
+    branches: [ main ]
   workflow_dispatch:
+
 permissions:
   contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - run: unzip -q PaintLab.zip
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 17
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
       - uses: gradle/actions/setup-gradle@v4
-      - name: Download scene model
-        working-directory: PaintLab
+
+      - name: Download scene segmentation model
         run: |
           pip install --quiet kagglehub || true
-          python3 scripts/fetch_scene_model.py
+          python scripts/fetch_scene_model.py 2>&1 | tee model.log
+
       - name: Build APK
-        working-directory: PaintLab
         run: |
           chmod +x gradlew
-          ./gradlew assembleRelease
-      - uses: softprops/action-gh-release@v2
+          set -o pipefail
+          ./gradlew assembleRelease --stacktrace 2>&1 | tee build.log
+          mkdir -p out
+          cp app/build/outputs/apk/release/*.apk out/PaintLab.apk
+
+      # Saves the logs to the "ci-logs" branch so they can be read without the web UI.
+      - name: Save logs
+        if: always()
+        run: |
+          grep -nE "^e: |^w: .*error|error:|What went wrong|FAILURE|Could not|BUILD " build.log > errors.txt || true
+          mkdir -p /tmp/logs && cp -f build.log model.log errors.txt /tmp/logs/ 2>/dev/null || true
+          git config user.name "ci"
+          git config user.email "ci@users.noreply.github.com"
+          git checkout --orphan ci-logs
+          git rm -rf --cached . > /dev/null
+          rm -rf ./*
+          cp /tmp/logs/* .
+          echo "run ${{ github.run_number }} ${{ github.sha }} ${{ job.status }}" > status.txt
+          git add -f build.log model.log errors.txt status.txt 2>/dev/null || true
+          git commit -q -m "logs for run ${{ github.run_number }}"
+          git push -f origin ci-logs
+
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: PaintLab-apk
+          path: out/PaintLab.apk
+
+      # A release gives you a plain download link you can open on your phone.
+      - name: Publish release
+        if: success()
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
-          files: PaintLab/app/build/outputs/apk/release/app-release.apk
+          name: PaintLab build ${{ github.run_number }}
+          body: "Tap PaintLab.apk below to download and install."
+          files: out/PaintLab.apk
